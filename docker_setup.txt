@@ -1,0 +1,216 @@
+# ====================================
+# Dockerfile
+# ====================================
+# FROM python:3.11-slim
+# 
+# WORKDIR /app
+# 
+# # Instalar dependencias del sistema
+# RUN apt-get update && apt-get install -y \
+#     gcc \
+#     g++ \
+#     postgresql-client \
+#     && rm -rf /var/lib/apt/lists/*
+# 
+# # Copiar requirements
+# COPY requirements.txt .
+# RUN pip install --no-cache-dir -r requirements.txt
+# 
+# # Copiar código
+# COPY . .
+# 
+# # Variables de entorno
+# ENV PYTHONUNBUFFERED=1
+# ENV MODE=testnet
+# 
+# # Exponer puertos
+# EXPOSE 8000 8501
+# 
+# # Comando por defecto
+# CMD ["python", "main.py", "--mode", "testnet"]
+
+# ====================================
+# docker-compose.yml
+# ====================================
+version: '3.8'
+
+services:
+  # Bot de Trading
+  trading-bot:
+    build: .
+    container_name: trading_bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - MODE=${MODE:-testnet}
+      - DATABASE_TYPE=${DATABASE_TYPE:-csv}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config:/app/config
+    networks:
+      - trading-network
+    depends_on:
+      - postgres
+      - mongodb
+    command: python main.py --mode ${MODE:-testnet}
+
+  # Dashboard Streamlit
+  dashboard:
+    build: .
+    container_name: trading_dashboard
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - trading-network
+    command: streamlit run visualization/dashboard.py
+
+  # API FastAPI para móvil
+  api:
+    build: .
+    container_name: trading_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    networks:
+      - trading-network
+    command: uvicorn visualization.mobile_api.fastapi_server:app --host 0.0.0.0 --port 8000
+
+  # PostgreSQL (opcional)
+  postgres:
+    image: postgres:15-alpine
+    container_name: trading_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: trading_bot
+      POSTGRES_USER: ${POSTGRES_USER:-tradingbot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-securepassword}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - trading-network
+
+  # MongoDB (opcional)
+  mongodb:
+    image: mongo:7
+    container_name: trading_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-tradingbot}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-securepassword}
+      MONGO_INITDB_DATABASE: trading_bot
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - trading-network
+
+networks:
+  trading-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongodb_data:
+
+# ====================================
+# .env.example
+# ====================================
+# Copiar a .env y configurar
+
+# Modo de operación
+MODE=testnet
+
+# Exchange API Keys - BINANCE
+BINANCE_API_KEY=your_binance_api_key_here
+BINANCE_API_SECRET=your_binance_api_secret_here
+
+# Exchange API Keys - BYBIT
+BYBIT_API_KEY=your_bybit_api_key_here
+BYBIT_API_SECRET=your_bybit_api_secret_here
+
+# Database - PostgreSQL
+POSTGRES_USER=tradingbot
+POSTGRES_PASSWORD=securepassword123
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+
+# Database - MongoDB
+MONGO_USER=tradingbot
+MONGO_PASSWORD=securepassword123
+MONGO_HOST=mongodb
+MONGO_PORT=27017
+
+# Database Selection
+DATABASE_TYPE=csv  # csv, json, mongodb, postgresql
+
+# Notifications - Telegram
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+TELEGRAM_CHAT_ID=your_chat_id
+
+# Notifications - Email
+EMAIL_USERNAME=your_email@gmail.com
+EMAIL_PASSWORD=your_app_password
+EMAIL_FROM=your_email@gmail.com
+EMAIL_TO=destination@email.com
+
+# Notifications - SMS/WhatsApp (Twilio)
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_FROM_NUMBER=+1234567890
+TWILIO_TO_NUMBER=+1234567890
+TWILIO_WHATSAPP_FROM=whatsapp:+1234567890
+TWILIO_WHATSAPP_TO=whatsapp:+1234567890
+
+# Security
+ENCRYPTION_KEY=your_32_char_encryption_key_here
+JWT_SECRET=your_jwt_secret_key_for_api
+
+# Sentry (optional)
+SENTRY_DSN=your_sentry_dsn_here
+
+# ====================================
+# Makefile (opcional)
+# ====================================
+# .PHONY: help build up down logs test
+# 
+# help:
+# 	@echo "Comandos disponibles:"
+# 	@echo "  make build      - Construir imágenes Docker"
+# 	@echo "  make up         - Iniciar todos los servicios"
+# 	@echo "  make down       - Detener todos los servicios"
+# 	@echo "  make logs       - Ver logs en tiempo real"
+# 	@echo "  make test       - Ejecutar tests"
+# 	@echo "  make backtest   - Ejecutar backtesting"
+# 
+# build:
+# 	docker-compose build
+# 
+# up:
+# 	docker-compose up -d
+# 
+# down:
+# 	docker-compose down
+# 
+# logs:
+# 	docker-compose logs -f trading-bot
+# 
+# test:
+# 	docker-compose run --rm trading-bot pytest tests/
+# 
+# backtest:
+# 	docker-compose run --rm trading-bot python main.py --mode backtest
