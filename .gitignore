@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Secretos / config local
+.env
+.env.*
+config/secrets.py
+
+# Datos y logs
+*.log
+*.csv
+data/
+logs/
+
+# Sistema
+.DS_Store
+Thumbs.db

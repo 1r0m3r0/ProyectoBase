@@ -1,8 +1,27 @@
-# 🤖 Trading Bot Algorítmico Profesional
+# 🤖 proyectobase — Arquitectura de Bot de Trading Algorítmico
 
-Bot de trading automatizado para criptomonedas con soporte para múltiples exchanges, estrategias personalizables, gestión avanzada de riesgo y visualización en tiempo real.
+[![CI](https://github.com/1r0m3r0/proyectobase/actions/workflows/ci.yml/badge.svg)](https://github.com/1r0m3r0/proyectobase/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-## 📋 Características Principales
+Arquitectura modular (blueprint) para un bot de trading de criptomonedas: conexión multi-exchange, estrategias, gestión de riesgo, backtesting y notificaciones. Este repositorio documenta el **diseño de referencia** y contiene la implementación de los módulos núcleo.
+
+> ### ⚠️ Estado del proyecto
+> Proyecto **en desarrollo activo**: es una **arquitectura de referencia**, no un bot listo para producción. Lo que sigue describe el diseño completo previsto; el estado real de los módulos es:
+>
+> | Módulo | Estado |
+> |---|---|
+> | `core/` (trading engine, order manager) | 🟢 Implementado |
+> | `exchange_connector/` (CCXT, Binance WS) | 🟢 Implementado |
+> | `strategies/` (base + señales) | 🟢 Implementado |
+> | `backtesting/` (engine) | 🟢 Implementado |
+> | `notifications/` (manager) | 🟢 Implementado |
+> | `portafolio_manager/` | 🟡 Parcial |
+> | `config/`, `data_handler/`, `risk_management/`, `visualization/`, API REST | 🔴 Planeado (referenciado en el diseño, aún no incluido) |
+>
+> Los ejemplos de esta guía reflejan la API objetivo; algunos importan módulos aún no incluidos. **No usar con capital real.**
+
+## 📋 Características Principales (diseño previsto)
 
 ### ✅ **Exchanges Soportados**
 - Binance (Spot, Futures USD-M, Futures COIN-M)
@@ -73,8 +92,8 @@ Bot de trading automatizado para criptomonedas con soporte para múltiples excha
 
 ```bash
 # Clonar repositorio
-git clone https://github.com/tu-usuario/trading-bot.git
-cd trading-bot
+git clone https://github.com/1r0m3r0/proyectobase.git
+cd proyectobase
 
 # Crear entorno virtual
 python -m venv venv
@@ -106,8 +125,8 @@ python main.py --mode testnet
 
 ```bash
 # Clonar repositorio
-git clone https://github.com/tu-usuario/trading-bot.git
-cd trading-bot
+git clone https://github.com/1r0m3r0/proyectobase.git
+cd proyectobase
 
 # Configurar .env
 cp .env.example .env

@@ -1,0 +1,13 @@
+# Núcleo (módulos implementados)
+ccxt>=4.0
+pandas>=2.0
+numpy>=1.23
+loguru>=0.7
+websocket-client>=1.6
+pandas-ta>=0.3.14b
+
+# Planeado / opcional (módulos aún no incluidos: dashboard, API, notificaciones externas)
+# streamlit>=1.30
+# fastapi>=0.110
+# python-telegram-bot>=20
+# twilio>=8.0
